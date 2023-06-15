@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04 AS builder
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 as builder
 
 ARG WEBUI_VERSION=v1.3.2
 ARG DREAMBOOTH_VERSION=1.0.14
@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND noninteractive\
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu
 ENV PATH="/workspace/venv/bin:$PATH"
-ENV TORCH_COMMAND="pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117"
+ENV TORCH_COMMAND="pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118"
 WORKDIR /workspace
 
 COPY --from=scripts cache-sd-model.py .
@@ -59,7 +59,6 @@ export PATH="/workspace/venv/bin:$PATH" && \
 pip install -U --no-cache-dir jupyterlab jupyterlab_widgets ipykernel ipywidgets && \
 git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git && \
 cd stable-diffusion-webui && \
-git checkout tags/v1.3.2 && \
 mv /workspace/install-automatic.py /workspace/stable-diffusion-webui/ && \
 mv /requirements.txt ./requirements.txt && \
 mv /requirements_versions.txt ./requirements_versions.txt && \
@@ -72,8 +71,8 @@ cd /workspace/stable-diffusion-webui && \
   git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet && \
   cd extensions/sd-webui-controlnet && \
   pip install -r requirements.txt && \
-#cd /workspace/stable-diffusion-webui && \
-#git clone https://github.com/d8ahazard/sd_dreambooth_extension.git extensions/sd_dreambooth_extension && \
+cd /workspace/stable-diffusion-webui && \
+git clone https://github.com/d8ahazard/sd_dreambooth_extension.git extensions/sd_dreambooth_extension && \
 #cd extensions/sd_dreambooth_extension && \
 #git checkout dev && \
 #  git reset ${DREAMBOOTH_VERSION} --hard && \
@@ -84,7 +83,13 @@ python cache-sd-model.py --use-cpu=all --ckpt /sd-models/SDv1-5.ckpt && \
 pip cache purge && \
 apt clean && \
 mv /workspace/venv /venv && \
-mv /workspace/stable-diffusion-webui /stable-diffusion-webui
+mv /workspace/stable-diffusion-webui /stable-diffusion-webui && \
+apt install libcudnn8=8.9.2.26-1+cuda11.8 libcudnn8-dev=8.9.2.26-1+cuda11.8 && \
+cd /workspace/stable-diffusion-webui/models/Stable-diffusion && \
+wget https://huggingface.co/SG161222/Realistic_Vision_V2.0/resolve/main/Realistic_Vision_V2.0.safetensors && \
+cd /workspace && \
+wget https://huggingface.co/MonsterMMORPG/SECourses/resolve/main/768x1024_2724_imgs.zip && \
+apt-get install p7zip-full
 
 COPY --from=models SDv1-5.ckpt /sd-models/SDv1-5.ckpt
 COPY --from=models control_v11p_sd15_canny.pth /cn-models/control_v11p_sd15_canny.pth
