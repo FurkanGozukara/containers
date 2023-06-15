@@ -16,10 +16,7 @@ COPY --from=scripts cache-sd-model.py .
 COPY --from=scripts install-automatic.py .
 COPY --from=models SDv1-5.ckpt /sd-models/SDv1-5.ckpt
 COPY --from=models control_v11p_sd15_canny.pth /cn-models/control_v11p_sd15_canny.pth
-COPY requirements_dreambooth.txt /requirements_dreambooth.txt
 
-COPY requirements.txt /requirements.txt
-COPY requirements_versions.txt /requirements_versions.txt
 
 RUN apt update --yes && \
 apt upgrade --yes && \
@@ -57,33 +54,17 @@ pip install -U --no-cache-dir pip && \
 python -m venv /workspace/venv && \
 export PATH="/workspace/venv/bin:$PATH" && \
 pip install -U --no-cache-dir jupyterlab jupyterlab_widgets ipykernel ipywidgets && \
+cd /workspace && \
 git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git && \
-cd stable-diffusion-webui && \
-mv /workspace/install-automatic.py /workspace/stable-diffusion-webui/ && \
-mv /requirements.txt ./requirements.txt && \
-mv /requirements_versions.txt ./requirements_versions.txt && \
-python -m install-automatic --skip-torch-cuda-test && \
-  cd /workspace/stable-diffusion-webui && \
-  git clone https://github.com/deforum-art/sd-webui-deforum extensions/deforum && \
-  cd extensions/deforum && \
-  pip install -r requirements.txt && \
 cd /workspace/stable-diffusion-webui && \
-  git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet && \
-  cd extensions/sd-webui-controlnet && \
-  pip install -r requirements.txt && \
+git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet && \
 cd /workspace/stable-diffusion-webui && \
 git clone https://github.com/d8ahazard/sd_dreambooth_extension.git extensions/sd_dreambooth_extension && \
-#cd extensions/sd_dreambooth_extension && \
-#git checkout dev && \
-#  git reset ${DREAMBOOTH_VERSION} --hard && \
-#  mv /requirements_dreambooth.txt ./requirements.txt && pip install -r requirements.txt && \
 cd /workspace/stable-diffusion-webui/ && \
 mv /workspace/cache-sd-model.py /workspace/stable-diffusion-webui/ && \
 python cache-sd-model.py --use-cpu=all --ckpt /sd-models/SDv1-5.ckpt && \
 pip cache purge && \
 apt clean && \
-mv /workspace/venv /venv && \
-mv /workspace/stable-diffusion-webui /stable-diffusion-webui && \
 apt install libcudnn8=8.9.2.26-1+cuda11.8 libcudnn8-dev=8.9.2.26-1+cuda11.8 && \
 cd /workspace/stable-diffusion-webui/models/Stable-diffusion && \
 wget https://huggingface.co/SG161222/Realistic_Vision_V2.0/resolve/main/Realistic_Vision_V2.0.safetensors && \
