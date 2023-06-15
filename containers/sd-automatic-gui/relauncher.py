@@ -1,7 +1,7 @@
 import os, time
 
 n = 0
-while True:
+while (n<1):
     print('Relauncher: Launching...')
     if n > 0:
         print(f'\tRelaunch count: {n}')
